@@ -1,0 +1,2429 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Management System</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+        background: linear-gradient(135deg, #F5F3F0 0%, #FEFDFB 50%, #FAF8F5 100%);
+        min-height: 100vh;
+        padding: 24px;
+        color: #0F1419;
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+          radial-gradient(ellipse 900px 700px at 20% 30%, rgba(13, 95, 109, 0.025) 0%, transparent 45%),
+          radial-gradient(ellipse 700px 900px at 80% 70%, rgba(21, 143, 163, 0.02) 0%, transparent 55%);
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      .container {
+        max-width: 1240px;
+        margin: 0 auto;
+        background: #FFFFFF;
+        border-radius: 24px;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(15, 20, 25, 0.07),
+          0 12px 32px rgba(15, 20, 25, 0.09),
+          0 30px 60px rgba(15, 20, 25, 0.08);
+        overflow: hidden;
+        border: 1px solid rgba(13, 95, 109, 0.06);
+        backdrop-filter: blur(0px);
+      }
+
+      .page {
+        display: none;
+        padding: 56px 52px;
+        animation: dissolveIn 0.45s ease-out;
+      }
+
+      .page.active {
+        display: block;
+      }
+
+      @keyframes dissolveIn {
+        from {
+          opacity: 0;
+          filter: blur(8px);
+        }
+        to {
+          opacity: 1;
+          filter: blur(0);
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .header {
+        background: linear-gradient(135deg, #0D5F6D 0%, #158FA3 50%, #20A8B8 100%);
+        color: #FFFFFF;
+        padding: 68px 52px;
+        text-align: center;
+        margin: -56px -52px 56px -52px;
+        box-shadow: 
+          0 0 1px rgba(15, 20, 25, 0.05),
+          0 8px 20px rgba(13, 95, 109, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.45),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(ellipse 800px 400px at 50% -50%, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+        pointer-events: none;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 14px;
+        font-weight: 800;
+        letter-spacing: -0.7px;
+        color: #FFFFFF;
+        position: relative;
+        z-index: 1;
+      }
+
+      .header p {
+        font-size: 0.95em;
+        opacity: 0.90;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: rgba(255, 255, 255, 0.95);
+        position: relative;
+        z-index: 1;
+      }
+
+      .role-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+        gap: 36px;
+        margin: 48px 0;
+      }
+
+      .role-card {
+        background: linear-gradient(135deg, #0D5F6D 0%, #158FA3 50%, #20A8B8 100%);
+        color: #FFFFFF;
+        padding: 52px 44px;
+        border-radius: 18px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(15, 20, 25, 0.07),
+          0 12px 28px rgba(184, 150, 15, 0.14),
+          inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .role-card::before {
+        content: "";
+        position: absolute;
+        top: -40%;
+        right: -40%;
+        width: 180%;
+        height: 180%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        z-index: 1;
+      }
+
+      .role-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 
+          0 2px 5px rgba(15, 20, 25, 0.08),
+          0 8px 16px rgba(15, 20, 25, 0.11),
+          0 20px 44px rgba(184, 150, 15, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      }
+
+      .role-card:hover::before {
+        opacity: 1;
+      }
+
+      .role-card i {
+        font-size: 3em;
+        margin-bottom: 18px;
+        display: block;
+        position: relative;
+        z-index: 2;
+        animation: float 4s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+      }
+
+      .role-card h3 {
+        font-size: 1.45em;
+        margin-bottom: 12px;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+        color: #FFFFFF;
+        position: relative;
+        z-index: 2;
+      }
+
+      .role-card p {
+        margin: 0;
+        font-weight: 600;
+        letter-spacing: 0.35px;
+        opacity: 0.95;
+        color: rgba(255, 255, 255, 0.95);
+        position: relative;
+        z-index: 2;
+      }
+
+      .form-group {
+        margin-bottom: 24px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 800;
+        color: #0F1419;
+        font-size: 0.88em;
+        letter-spacing: 0.35px;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid #E2DDD5;
+        border-radius: 10px;
+        font-size: 0.91em;
+        transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+        background: linear-gradient(135deg, #FFFFFF 0%, #FDFBF8 100%);
+        color: #0F1419;
+        font-weight: 500;
+        backdrop-filter: blur(1px);
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #0D5F6D;
+        background: #FFFFFF;
+        box-shadow: 
+          0 0 0 4px rgba(184, 150, 15, 0.12),
+          0 4px 16px rgba(184, 150, 15, 0.14);
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #0D5F6D 0%, #158FA3 50%, #20A8B8 100%);
+        color: #FFFFFF;
+        padding: 14px 40px;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.95em;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+        width: 100%;
+        margin-top: 20px;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(15, 20, 25, 0.07),
+          0 10px 24px rgba(13, 95, 109, 0.16),
+          inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        letter-spacing: 0.45px;
+        border: none;
+      }
+
+      .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 
+          0 2px 5px rgba(15, 20, 25, 0.08),
+          0 8px 16px rgba(15, 20, 25, 0.11),
+          0 16px 36px rgba(13, 95, 109, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      }
+
+      .btn:active {
+        transform: translateY(-1px);
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(184, 150, 15, 0.11),
+          inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, #888784 0%, #6B6865 100%);
+        color: white;
+        margin-top: 10px;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(15, 20, 25, 0.08),
+          0 10px 24px rgba(107, 104, 101, 0.13),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .btn-secondary:hover {
+        box-shadow: 
+          0 2px 5px rgba(15, 20, 25, 0.08),
+          0 8px 16px rgba(15, 20, 25, 0.11),
+          0 16px 36px rgba(107, 104, 101, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, #D05254 0%, #B54449 100%);
+        color: white;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(15, 20, 25, 0.08),
+          0 10px 24px rgba(208, 82, 84, 0.13),
+          inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      }
+
+      .btn-danger:hover {
+        box-shadow: 
+          0 2px 5px rgba(15, 20, 25, 0.08),
+          0 8px 16px rgba(15, 20, 25, 0.11),
+          0 16px 36px rgba(208, 82, 84, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #3A9F51 0%, #2D7F43 100%);
+        color: white;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(15, 20, 25, 0.08),
+          0 10px 24px rgba(58, 159, 81, 0.13),
+          inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      }
+
+      .btn-success:hover {
+        box-shadow: 
+          0 2px 5px rgba(15, 20, 25, 0.08),
+          0 8px 16px rgba(15, 20, 25, 0.11),
+          0 16px 36px rgba(58, 159, 81, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      }
+
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 36px;
+        margin: 48px 0;
+      }
+
+      .dashboard-card {
+        background: linear-gradient(135deg, #0D5F6D 0%, #158FA3 50%, #20A8B8 100%);
+        color: #FFFFFF;
+        padding: 52px 44px;
+        border-radius: 18px;
+        text-align: center;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(15, 20, 25, 0.07),
+          0 12px 28px rgba(184, 150, 15, 0.14),
+          inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        transition: all 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .dashboard-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.2) 0%, transparent 65%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        border-radius: 18px;
+      }
+
+      .dashboard-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 
+          0 2px 5px rgba(15, 20, 25, 0.08),
+          0 8px 16px rgba(15, 20, 25, 0.11),
+          0 20px 44px rgba(13, 95, 109, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      }
+
+      .dashboard-card:hover::after {
+        opacity: 1;
+      }
+
+      .dashboard-card h3 {
+        font-size: 2.4em;
+        margin-bottom: 14px;
+        font-weight: 800;
+        color: #FFFFFF;
+      }
+
+      .dashboard-card p {
+        font-size: 0.98em;
+        opacity: 0.95;
+        font-weight: 600;
+        letter-spacing: 0.25px;
+        color: rgba(255, 255, 255, 0.95);
+      }
+
+      .quiz-list {
+        margin-top: 48px;
+      }
+
+      .quiz-item {
+        background: linear-gradient(135deg, #FEFDFB 0%, #FAF8F5 100%);
+        padding: 30px 32px;
+        border-radius: 12px;
+        margin-bottom: 18px;
+        border-left: 5px solid #B8960F;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.04),
+          0 2px 6px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(184, 150, 15, 0.08);
+        transition: all 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+        position: relative;
+      }
+
+      .quiz-item::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.32s ease;
+        border-radius: 12px;
+      }
+
+      .quiz-item:hover {
+        transform: translateX(5px);
+        box-shadow: 
+          0 2px 5px rgba(15, 20, 25, 0.06),
+          0 4px 12px rgba(15, 20, 25, 0.08),
+          0 8px 20px rgba(13, 95, 109, 0.12);
+      }
+
+      .quiz-item:hover::before {
+        opacity: 1;
+      }
+
+      .quiz-item h4 {
+        color: #0D5F6D;
+        margin-bottom: 12px;
+        font-size: 1.1em;
+        font-weight: 800;
+        letter-spacing: -0.15px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .question-item {
+        background: linear-gradient(135deg, #FEFDFB 0%, #FAF8F5 100%);
+        padding: 36px 38px;
+        border-radius: 12px;
+        margin-bottom: 26px;
+        border-left: 5px solid #B8960F;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.04),
+          0 2px 6px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(15, 20, 25, 0.05);
+      }
+
+      .question-item h4 {
+        margin-bottom: 20px;
+        color: #0F1419;
+        font-size: 1.05em;
+        font-weight: 800;
+        letter-spacing: -0.25px;
+      }
+
+      .option-group {
+        margin: 12px 0;
+        border-left: 5px solid #0D5F6D;
+      }
+
+      .option-group label {
+        display: block;
+        padding: 13px 15px;
+        background: linear-gradient(135deg, #FFFFFF 0%, #FDFBF8 100%);
+        border: 1px solid #E2DDD5;
+        border-radius: 10px;
+        margin: 10px 0;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+        font-weight: 600;
+        color: #1A2230;
+      }
+
+      .option-group input[type="radio"] {
+        margin-right: 12px;
+        cursor: pointer;
+        accent-color: #0D5F6D;
+      }
+
+      .option-group label:hover {
+        border-color: #0D5F6D;
+        background: linear-gradient(135deg, #FFFBF7 0%, #FAF8F5 100%);
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(13, 95, 109, 0.11);
+        transform: translateX(2px);
+      }
+
+      .student-card {
+        background: linear-gradient(135deg, #FFFFFF 0%, #FDFBF8 100%);
+        border: 1px solid #E2DDD5;
+        padding: 30px 32px;
+        border-radius: 12px;
+        margin-bottom: 18px;
+        border-left: 5px solid #0D5F6D;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.04),
+          0 2px 6px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(184, 150, 15, 0.08);
+        transition: all 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+      }
+
+      .student-card:hover {
+        border-color: #0D5F6D;
+        box-shadow: 
+          0 2px 5px rgba(15, 20, 25, 0.06),
+          0 4px 12px rgba(15, 20, 25, 0.08),
+          0 8px 20px rgba(184, 150, 15, 0.12);
+        transform: translateY(-3px);
+      }
+
+      .student-card h4 {
+        color: #0D5F6D;
+        margin-bottom: 12px;
+        font-weight: 800;
+        font-size: 1em;
+        letter-spacing: -0.15px;
+      }
+
+      .student-card p {
+        margin: 8px 0;
+        color: #5A5A5A;
+        line-height: 1.65;
+        font-size: 0.88em;
+      }
+
+      .score-badge {
+        display: inline-block;
+        padding: 7px 16px;
+        border-radius: 20px;
+        font-weight: 800;
+        margin-top: 12px;
+        font-size: 0.82em;
+        letter-spacing: 0.25px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      }
+
+      .score-badge.excellent {
+        background: linear-gradient(135deg, #2A9E52 0%, #1F7A3D 100%);
+        color: white;
+      }
+
+      .score-badge.good {
+        background: linear-gradient(135deg, #158FA3 0%, #0D5F6D 100%);
+        color: white;
+      }
+
+      .score-badge.average {
+        background: linear-gradient(135deg, #EB7D1B 0%, #D06800 100%);
+        color: white;
+      }
+
+      .score-badge.poor {
+        background: linear-gradient(135deg, #D05254 0%, #B54449 100%);
+        color: white;
+      }
+
+      .tab-buttons {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 34px;
+        flex-wrap: wrap;
+      }
+
+      .tab-btn {
+        padding: 11px 24px;
+        background: linear-gradient(135deg, #F7F5F2 0%, #F3F0ED 100%);
+        border: 1px solid #E2DDD5;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+        font-weight: 800;
+        color: #5A5A5A;
+        font-size: 0.86em;
+        letter-spacing: 0.25px;
+      }
+
+      .tab-btn:hover {
+        background: linear-gradient(135deg, #EFEFEB 0%, #E8E5E0 100%);
+        border-color: #0D5F6D;
+        color: #0F1419;
+      }
+
+      .tab-btn.active {
+        background: linear-gradient(135deg, #0D5F6D 0%, #158FA3 50%, #20A8B8 100%);
+        color: #FFFFFF;
+        border-color: #0D5F6D;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(184, 150, 15, 0.12);
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .alert {
+        padding: 18px 24px;
+        border-radius: 10px;
+        margin-bottom: 22px;
+        border-left: 4px solid;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.04),
+          0 2px 6px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(15, 20, 25, 0.05);
+      }
+
+      .alert-success {
+        background: linear-gradient(135deg, #E0F3F6 0%, #EBF8FA 100%);
+        color: #0D5F6D;
+        border-left-color: #20A8B8;
+        font-weight: 600;
+      }
+
+      .alert-error {
+        background: linear-gradient(135deg, #FFEBE8 0%, #FFF2F0 100%);
+        color: #7A3535;
+        border-left-color: #D05254;
+        font-weight: 600;
+      }
+
+      .logout-btn {
+        position: fixed;
+        top: 28px;
+        right: 28px;
+        background: linear-gradient(135deg, #D05254 0%, #B54449 100%);
+        color: white;
+        padding: 11px 24px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        z-index: 1000;
+        font-weight: 800;
+        transition: all 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(15, 20, 25, 0.08),
+          0 10px 24px rgba(208, 82, 84, 0.13),
+          inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        letter-spacing: 0.35px;
+        font-size: 0.87em;
+      }
+
+      .logout-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 
+          0 2px 5px rgba(15, 20, 25, 0.08),
+          0 8px 16px rgba(15, 20, 25, 0.11),
+          0 16px 36px rgba(208, 82, 84, 0.19),
+          inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      }
+
+      .user-info {
+        background: linear-gradient(135deg, #FEFDFB 0%, #FAF8F5 100%);
+        padding: 30px 32px;
+        border-radius: 12px;
+        margin-bottom: 44px;
+        border-left: 5px solid #0D5F6D;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.04),
+          0 2px 6px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(184, 150, 15, 0.08);
+      }
+
+      .user-info h3 {
+        color: #0F1419;
+        margin-bottom: 12px;
+        font-weight: 800;
+        font-size: 1em;
+        letter-spacing: -0.1px;
+      }
+
+      .user-info p {
+        color: #5A5A5A;
+        line-height: 1.65;
+        font-size: 0.88em;
+      }
+
+      .question-builder {
+        background: linear-gradient(135deg, #FEFDFB 0%, #FAF8F5 100%);
+        padding: 36px 38px;
+        border-radius: 12px;
+        margin-bottom: 26px;
+        border-left: 5px solid #0D5F6D;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.04),
+          0 2px 6px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(15, 20, 25, 0.05);
+      }
+
+      .question-builder h4 {
+        color: #0D5F6D;
+        margin-bottom: 18px;
+        font-weight: 800;
+        font-size: 0.96em;
+        letter-spacing: 0.25px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 26px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 
+          0 1px 3px rgba(15, 20, 25, 0.04),
+          0 2px 6px rgba(15, 20, 25, 0.05),
+          0 4px 12px rgba(15, 20, 25, 0.05);
+      }
+
+      table th,
+      table td {
+        padding: 14px 16px;
+        text-align: left;
+        border-bottom: 1px solid #F0EBE5;
+        font-weight: 600;
+        font-size: 0.88em;
+      }
+
+      table th {
+        background: linear-gradient(135deg, #0D5F6D 0%, #158FA3 50%, #20A8B8 100%);
+        color: #FFFFFF;
+        font-weight: 800;
+        letter-spacing: 0.25px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      }
+
+      table tr {
+        transition: all 0.28s ease;
+      }
+
+      table tr:hover {
+        background: linear-gradient(135deg, #FFFBF7 0%, #FAF8F5 100%);
+      }
+
+      .back-link {
+        color: #0D5F6D;
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 22px;
+        font-weight: 800;
+        transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 0.88em;
+        letter-spacing: 0.25px;
+      }
+
+      .back-link:hover {
+        color: #158FA3;
+        background: rgba(13, 95, 109, 0.07);
+        transform: translateX(-4px);
+      }
+
+      .form-group input::placeholder,
+      .form-group select::placeholder,
+      .form-group textarea::placeholder {
+        color: #999999;
+        font-weight: 500;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 16px;
+        }
+
+        .container {
+          border-radius: 18px;
+        }
+
+        .page {
+          padding: 40px 24px;
+        }
+
+        .header {
+          padding: 48px 24px;
+          margin: -40px -24px 40px -24px;
+        }
+
+        .header h1 {
+          font-size: 2.1em;
+        }
+
+        .dashboard-card h3 {
+          font-size: 2.35em;
+        }
+
+        .role-selector {
+          grid-template-columns: 1fr;
+          gap: 24px;
+        }
+
+        .btn {
+          padding: 14px 32px;
+          font-size: 0.99em;
+        }
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #F7F5F2;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #0D5F6D 0%, #158FA3 100%);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #0A4B57 0%, #0D5F6D 100%);
+      }
+
+      ::selection {
+        background: linear-gradient(135deg, #0D5F6D 0%, #158FA3 100%);
+        color: #FFFFFF;
+      }
+
+      * {
+        --transition-speed: 0.3s;
+      }
+
+      button,
+      input,
+      select,
+      textarea,
+      a {
+        outline-offset: 2px;
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      textarea:focus-visible,
+      a:focus-visible {
+        outline: 2px solid #0D5F6D;
+      }
+    </style>
+  </head>
+<body>
+    <div class="container">
+      <!-- Welcome Page -->
+      <div id="welcomePage" class="page active">
+        <div class="header">
+          <h1>🎓 Quiz Management System</h1>
+          <p>Learn, Create, and Excel</p>
+        </div>
+        <div class="role-selector">
+          <div class="role-card" onclick="showPage('registerPage')">
+            <div style="font-size: 3em">📝</div>
+            <h3>Register</h3>
+            <p>Create a new account</p>
+          </div>
+          <div class="role-card" onclick="showPage('loginPage')">
+            <div style="font-size: 3em">🔐</div>
+            <h3>Login</h3>
+            <p>Access your account</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Registration Page -->
+      <div id="registerPage" class="page">
+        <div class="header">
+          <h1>📝 Registration</h1>
+          <p>Choose your role and create an account</p>
+        </div>
+        <a href="#" class="back-link" onclick="showPage('welcomePage')"
+          >&larr; Back to Home</a
+        >
+
+        <div class="role-selector">
+          <div class="role-card" onclick="showRegistrationForm('student')">
+            <div style="font-size: 3em">👨‍🎓</div>
+            <h3>Student</h3>
+            <p>Register as Student</p>
+          </div>
+          <div class="role-card" onclick="showRegistrationForm('staff')">
+            <div style="font-size: 3em">👨‍🏫</div>
+            <h3>Staff</h3>
+            <p>Register as Staff</p>
+          </div>
+          <div class="role-card" onclick="showPage('adminLoginPage')">
+            <div style="font-size: 3em">👨‍💼</div>
+            <h3>Admin</h3>
+            <p>Admin Login</p>
+          </div>
+        </div>
+
+        <!-- Student Registration Form -->
+        <div id="studentRegForm" style="display: none; margin-top: 30px">
+          <h2 style="margin-bottom: 20px; color: #667eea">
+            Student Registration
+          </h2>
+          <form onsubmit="registerStudent(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Student Name *</label>
+                <input type="text" id="studentName" required />
+              </div>
+              <div class="form-group">
+                <label>Student ID *</label>
+                <input type="text" id="studentId" required />
+              </div>
+              <div class="form-group">
+                <label>Date of Birth *</label>
+                <input type="date" id="studentDob" required />
+              </div>
+              <div class="form-group">
+                <label>Phone Number *</label>
+                <input type="tel" id="studentPhone" required />
+              </div>
+              <div class="form-group">
+                <label>Department *</label>
+                <select id="studentDept" required>
+                  <option value="">Select Department</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Mechanical">Mechanical</option>
+                  <option value="Civil">Civil</option>
+                  <option value="Electrical">Electrical</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Year *</label>
+                <select id="studentYear" required>
+                  <option value="">Select Year</option>
+                  <option value="1">First Year</option>
+                  <option value="2">Second Year</option>
+                  <option value="3">Third Year</option>
+                  <option value="4">Fourth Year</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="studentEmail" required />
+              </div>
+              <div class="form-group">
+                <label>Gender *</label>
+                <select id="studentGender" required>
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Password *</label>
+                <input type="password" id="studentPassword" required />
+              </div>
+              <div class="form-group">
+                <label>Confirm Password *</label>
+                <input type="password" id="studentConfirmPassword" required />
+              </div>
+            </div>
+            <button type="submit" class="btn">Register as Student</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="hideRegistrationForms()">
+              Cancel
+            </button>
+          </form>
+        </div>
+
+        <!-- Staff Registration Form -->
+        <div id="staffRegForm" style="display: none; margin-top: 30px">
+          <h2 style="margin-bottom: 20px; color: #667eea">
+            Staff Registration
+          </h2>
+          <form onsubmit="registerStaff(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Staff Name *</label>
+                <input type="text" id="staffName" required />
+              </div>
+              <div class="form-group">
+                <label>Staff ID *</label>
+                <input type="text" id="staffId" required />
+              </div>
+              <div class="form-group">
+                <label>Date of Birth *</label>
+                <input type="date" id="staffDob" required />
+              </div>
+              <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="staffEmail" required />
+              </div>
+              <div class="form-group">
+                <label>Phone Number *</label>
+                <input type="tel" id="staffPhone" required />
+              </div>
+              <div class="form-group">
+                <label>Department *</label>
+                <select id="staffDept" required>
+                  <option value="">Select Department</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Mechanical">Mechanical</option>
+                  <option value="Civil">Civil</option>
+                  <option value="Electrical">Electrical</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Position *</label>
+                <input type="text" id="staffPosition" required />
+              </div>
+              <div class="form-group">
+                <label>Experience (Years) *</label>
+                <input type="number" id="staffExperience" required />
+              </div>
+              <div class="form-group">
+                <label>Qualification *</label>
+                <input type="text" id="staffQualification" required />
+              </div>
+              <div class="form-group">
+                <label>Password *</label>
+                <input type="password" id="staffPassword" required />
+              </div>
+              <div class="form-group">
+                <label>Confirm Password *</label>
+                <input type="password" id="staffConfirmPassword" required />
+              </div>
+            </div>
+            <button type="submit" class="btn">Register as Staff</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="hideRegistrationForms()">
+              Cancel
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Login Page -->
+      <div id="loginPage" class="page">
+        <div class="header">
+          <h1>🔐 Login</h1>
+          <p>Access your account</p>
+        </div>
+        <a href="#" class="back-link" onclick="showPage('welcomePage')"
+          >&larr; Back to Home</a
+        >
+
+        <div class="role-selector">
+          <div class="role-card" onclick="showLoginForm('student')">
+            <div style="font-size: 3em">👨‍🎓</div>
+            <h3>Student</h3>
+            <p>Student Login</p>
+          </div>
+          <div class="role-card" onclick="showLoginForm('staff')">
+            <div style="font-size: 3em">👨‍🏫</div>
+            <h3>Staff</h3>
+            <p>Staff Login</p>
+          </div>
+          <div class="role-card" onclick="showPage('adminLoginPage')">
+            <div style="font-size: 3em">👨‍💼</div>
+            <h3>Admin</h3>
+            <p>Admin Login</p>
+          </div>
+        </div>
+
+        <!-- Student Login Form -->
+        <div id="studentLoginForm" style="display: none; margin-top: 30px">
+          <h2 style="margin-bottom: 20px; color: #667eea">Student Login</h2>
+          <form onsubmit="loginStudent(event)">
+            <div class="form-group">
+              <label>Email *</label>
+              <input type="email" id="studentLoginEmail" required />
+            </div>
+            <div class="form-group">
+              <label>Password *</label>
+              <input type="password" id="studentLoginPassword" required />
+            </div>
+            <button type="submit" class="btn">Login</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="hideLoginForms()">
+              Cancel
+            </button>
+          </form>
+        </div>
+
+        <!-- Staff Login Form -->
+        <div id="staffLoginForm" style="display: none; margin-top: 30px">
+          <h2 style="margin-bottom: 20px; color: #667eea">Staff Login</h2>
+          <form onsubmit="loginStaff(event)">
+            <div class="form-group">
+              <label>Email *</label>
+              <input type="email" id="staffLoginEmail" required />
+            </div>
+            <div class="form-group">
+              <label>Password *</label>
+              <input type="password" id="staffLoginPassword" required />
+            </div>
+            <button type="submit" class="btn">Login</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="hideLoginForms()">
+              Cancel
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Admin Login Page -->
+      <div id="adminLoginPage" class="page">
+        <div class="header">
+          <h1>👨‍💼 Admin Login</h1>
+          <p>Administrator Access</p>
+        </div>
+        <a href="#" class="back-link" onclick="showPage('welcomePage')"
+          >&larr; Back to Home</a
+        >
+
+        <form
+          onsubmit="loginAdmin(event)"
+          style="max-width: 500px; margin: 30px auto">
+          <div class="form-group">
+            <label>Admin Email *</label>
+            <input type="email" id="adminLoginEmail" required />
+          </div>
+          <div class="form-group">
+            <label>Admin Password *</label>
+            <input type="password" id="adminLoginPassword" required />
+          </div>
+          <button type="submit" class="btn">Login as Admin</button>
+        </form>
+      </div>
+
+      <!-- Student Dashboard -->
+      <div id="studentDashboard" class="page">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+        <div class="header">
+          <h1>👨‍🎓 Student Dashboard</h1>
+          <p>Welcome back!</p>
+        </div>
+
+        <div class="user-info" id="studentInfo"></div>
+
+        <div class="dashboard-grid">
+          <div class="dashboard-card">
+            <h3 id="availableQuizzesCount">0</h3>
+            <p>Available Quizzes</p>
+          </div>
+          <div class="dashboard-card">
+            <h3 id="completedQuizzesCount">0</h3>
+            <p>Completed Quizzes</p>
+          </div>
+          <div class="dashboard-card">
+            <h3 id="averageScore">0%</h3>
+            <p>Average Score</p>
+          </div>
+        </div>
+
+        <h2 style="margin-top: 40px; color: #667eea">Available Quizzes</h2>
+        <div id="studentQuizList" class="quiz-list"></div>
+      </div>
+
+      <!-- Quiz Taking Page -->
+      <div id="quizTakingPage" class="page">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+        <div class="header">
+          <h1>📝 Take Quiz</h1>
+          <p id="quizTakingTitle"></p>
+        </div>
+
+        <a href="#" class="back-link" onclick="backToStudentDashboard()"
+          >&larr; Back to Dashboard</a
+        >
+
+        <div id="quizQuestionsContainer"></div>
+        <button class="btn btn-success" onclick="submitQuiz()">
+          Submit Quiz
+        </button>
+      </div>
+
+      <!-- Staff Dashboard -->
+      <div id="staffDashboard" class="page">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+        <div class="header">
+          <h1>👨‍🏫 Staff Dashboard</h1>
+          <p>Manage Quizzes and Students</p>
+        </div>
+
+        <div class="user-info" id="staffInfo"></div>
+
+        <!-- AI Teacher Assistant Panel -->
+        <div
+          class="ai-teacher"
+          style="
+            background: #f8fbff;
+            padding: 16px;
+            border-radius: 10px;
+            margin: 20px 0;
+          ">
+          <h3 style="margin: 0 0 8px 0; color: #333">AI Teacher Assistant</h3>
+          <p style="margin: 0 0 10px 0; color: #555">
+            Enter a topic and the assistant will generate teaching/assessment
+            questions you can review, add to a quiz, or save directly.
+          </p>
+          <div
+            style="
+              display: flex;
+              gap: 8px;
+              flex-wrap: wrap;
+              align-items: center;
+            ">
+            <input
+              id="aiTopic"
+              type="text"
+              placeholder="Topic (e.g. Binary Search)"
+              style="
+                flex: 1;
+                padding: 10px;
+                border-radius: 8px;
+                border: 1px solid #e0e0e0;
+              " />
+            <input
+              id="aiTeachNum"
+              type="number"
+              value="5"
+              min="1"
+              max="30"
+              style="
+                width: 90px;
+                padding: 8px;
+                border-radius: 6px;
+                border: 1px solid #e0e0e0;
+              " />
+            <select
+              id="aiTeachDifficulty"
+              style="
+                padding: 8px;
+                border-radius: 6px;
+                border: 1px solid #e0e0e0;
+              ">
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+            <button
+              class="btn"
+              style="width: auto"
+              onclick="generateTeachingAssistant()">
+              Generate
+            </button>
+          </div>
+          <div
+            id="aiTeacherResponse"
+            style="margin-top: 12px; color: #333"></div>
+          <div id="aiTeacherResults" style="margin-top: 12px"></div>
+        </div>
+
+        <div class="tab-buttons">
+          <button
+            class="tab-btn active"
+            onclick="switchTab('createQuiz', event)">
+            Create Quiz
+          </button>
+          <button class="tab-btn" onclick="switchTab('myQuizzes', event)">
+            My Quizzes
+          </button>
+          <button
+            class="tab-btn"
+            onclick="switchTab('studentPerformance', event)">
+            Student Performance
+          </button>
+        </div>
+
+        <!-- Create Quiz Tab -->
+        <div id="createQuizTab" class="tab-content active">
+          <h2 style="color: #667eea; margin-bottom: 20px">Create New Quiz</h2>
+          <form onsubmit="createQuiz(event)">
+            <div class="form-group">
+              <label>Quiz Title *</label>
+              <input type="text" id="quizTitle" required />
+            </div>
+            <div class="form-group">
+              <label>Quiz Description *</label>
+              <textarea id="quizDescription" rows="3" required></textarea>
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Department *</label>
+                <select id="quizDepartment" required>
+                  <option value="">Select Department</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Mechanical">Mechanical</option>
+                  <option value="Civil">Civil</option>
+                  <option value="Electrical">Electrical</option>
+                  <option value="All">All Departments</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Duration (minutes) *</label>
+                <input type="number" id="quizDuration" required />
+              </div>
+            </div>
+
+            <h3 style="margin: 30px 0 20px; color: #667eea">Add Questions</h3>
+            <div id="questionsContainer"></div>
+
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="addQuestion()">
+              + Add Question
+            </button>
+            <button type="submit" class="btn">Create Quiz</button>
+          </form>
+        </div>
+
+        <!-- My Quizzes Tab -->
+        <div id="myQuizzesTab" class="tab-content">
+          <h2 style="color: #667eea; margin-bottom: 20px">
+            My Created Quizzes
+          </h2>
+          <div id="staffQuizList"></div>
+        </div>
+
+        <!-- Student Performance Tab -->
+        <div id="studentPerformanceTab" class="tab-content">
+          <h2 style="color: #667eea; margin-bottom: 20px">
+            Student Performance
+          </h2>
+          <div id="performanceContainer"></div>
+        </div>
+      </div>
+
+      <!-- Admin Dashboard -->
+      <div id="adminDashboard" class="page">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+        <div class="header">
+          <h1>👨‍💼 Admin Dashboard</h1>
+          <p>System Overview</p>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="dashboard-card">
+            <h3 id="totalStudents">0</h3>
+            <p>Total Students</p>
+          </div>
+          <div class="dashboard-card">
+            <h3 id="totalStaff">0</h3>
+            <p>Total Staff</p>
+          </div>
+          <div class="dashboard-card">
+            <h3 id="totalQuizzes">0</h3>
+            <p>Total Quizzes</p>
+          </div>
+          <div class="dashboard-card">
+            <h3 id="totalAttempts">0</h3>
+            <p>Quiz Attempts</p>
+          </div>
+        </div>
+
+        <div class="tab-buttons">
+          <button
+            class="tab-btn active"
+            onclick="switchAdminTab('quizzes', event)">
+            All Quizzes
+          </button>
+          <button class="tab-btn" onclick="switchAdminTab('students', event)">
+            Students
+          </button>
+          <button class="tab-btn" onclick="switchAdminTab('staff', event)">
+            Staff
+          </button>
+          <button class="tab-btn" onclick="switchAdminTab('attempts', event)">
+            Quiz Attempts
+          </button>
+        </div>
+
+        <!-- Quizzes Tab -->
+        <div id="adminQuizzesTab" class="tab-content active">
+          <h2 style="color: #667eea; margin-top: 30px">All Quizzes</h2>
+          <div id="adminQuizList"></div>
+        </div>
+
+        <!-- Students Tab -->
+        <div id="adminStudentsTab" class="tab-content">
+          <h2 style="color: #667eea; margin-top: 30px">Registered Students</h2>
+          <div id="adminStudentList"></div>
+        </div>
+
+        <!-- Staff Tab -->
+        <div id="adminStaffTab" class="tab-content">
+          <h2 style="color: #667eea; margin-top: 30px">Registered Staff</h2>
+          <div id="adminStaffList"></div>
+        </div>
+
+        <!-- Attempts Tab -->
+        <div id="adminAttemptsTab" class="tab-content">
+          <h2 style="color: #667eea; margin-top: 30px">Quiz Attempts</h2>
+          <div id="adminAttemptsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Data Storage
+      let students = JSON.parse(localStorage.getItem("students")) || [];
+      let staff = JSON.parse(localStorage.getItem("staff")) || [];
+      let quizzes = JSON.parse(localStorage.getItem("quizzes")) || [];
+      let quizAttempts = JSON.parse(localStorage.getItem("quizAttempts")) || [];
+      let currentUser = null;
+      let currentQuiz = null;
+      let questionCount = 0;
+
+      // Admin credentials (hardcoded)
+      const ADMIN_EMAIL = "admin@quiz.com";
+      const ADMIN_PASSWORD = "admin123";
+
+      // Page Navigation
+      function showPage(pageId) {
+        document.querySelectorAll(".page").forEach((page) => {
+          page.classList.remove("active");
+        });
+        document.getElementById(pageId).classList.add("active");
+      }
+
+      // Registration Functions
+      function showRegistrationForm(role) {
+        hideRegistrationForms();
+        if (role === "student") {
+          document.getElementById("studentRegForm").style.display = "block";
+        } else if (role === "staff") {
+          document.getElementById("staffRegForm").style.display = "block";
+        }
+      }
+
+      function hideRegistrationForms() {
+        document.getElementById("studentRegForm").style.display = "none";
+        document.getElementById("staffRegForm").style.display = "none";
+      }
+
+      async function registerStudent(event) {
+        event.preventDefault();
+        const password = document.getElementById("studentPassword").value;
+        const confirmPassword = document.getElementById(
+          "studentConfirmPassword",
+        ).value;
+        if (password !== confirmPassword) {
+          alert("Passwords do not match!");
+          return;
+        }
+        const payload = {
+          studentName: document.getElementById("studentName").value,
+          studentId: document.getElementById("studentId").value,
+          studentDob: document.getElementById("studentDob").value,
+          studentPhone: document.getElementById("studentPhone").value,
+          studentDept: document.getElementById("studentDept").value,
+          studentYear: document.getElementById("studentYear").value,
+          studentEmail: document.getElementById("studentEmail").value,
+          studentGender: document.getElementById("studentGender").value,
+          studentPassword: password,
+          studentConfirmPassword: confirmPassword,
+        };
+        try {
+          const res = await fetch("/register_student", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            alert(data.message || "Student registered successfully!");
+            event.target.reset();
+            hideRegistrationForms();
+            showPage("loginPage");
+          } else {
+            alert(data.message || "Student registration failed");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Error registering student");
+        }
+      }
+
+      async function registerStaff(event) {
+        event.preventDefault();
+        const password = document.getElementById("staffPassword").value;
+        const confirmPassword = document.getElementById(
+          "staffConfirmPassword",
+        ).value;
+        if (password !== confirmPassword) {
+          alert("Passwords do not match!");
+          return;
+        }
+        const payload = {
+          staffName: document.getElementById("staffName").value,
+          staffId: document.getElementById("staffId").value,
+          staffDob: document.getElementById("staffDob").value,
+          staffEmail: document.getElementById("staffEmail").value,
+          staffPhone: document.getElementById("staffPhone").value,
+          staffDept: document.getElementById("staffDept").value,
+          staffPosition: document.getElementById("staffPosition").value,
+          staffExperience: document.getElementById("staffExperience").value,
+          staffQualification:
+            document.getElementById("staffQualification").value,
+          staffPassword: password,
+          staffConfirmPassword: confirmPassword,
+        };
+        try {
+          const res = await fetch("/register_staff", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            alert(data.message || "Staff registered successfully!");
+            event.target.reset();
+            hideRegistrationForms();
+            showPage("loginPage");
+          } else {
+            alert(data.message || "Staff registration failed");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Error registering staff");
+        }
+      }
+
+      // Login Functions
+      function showLoginForm(role) {
+        hideLoginForms();
+        if (role === "student") {
+          document.getElementById("studentLoginForm").style.display = "block";
+        } else if (role === "staff") {
+          document.getElementById("staffLoginForm").style.display = "block";
+        }
+      }
+
+      function hideLoginForms() {
+        document.getElementById("studentLoginForm").style.display = "none";
+        document.getElementById("staffLoginForm").style.display = "none";
+      }
+
+      async function loginStudent(event) {
+        event.preventDefault();
+        const email = document.getElementById("studentLoginEmail").value;
+        const password = document.getElementById("studentLoginPassword").value;
+        try {
+          const res = await fetch("/login_student", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              studentLoginEmail: email,
+              studentLoginPassword: password,
+            }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            const u = data.user;
+            currentUser = {
+              id: u.id,
+              name: u.first_name,
+              role: u.role,
+              studentId: u.student_id,
+              department: u.department,
+              phone: u.phone,
+              email: u.email,
+              gender: u.gender,
+              year: u.year,
+            };
+            sessionStorage.setItem("currentUser", JSON.stringify(currentUser));
+            loadStudentDashboard();
+            showPage("studentDashboard");
+          } else {
+            alert(data.message || "Invalid credentials!");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Login error");
+        }
+      }
+
+      async function loginStaff(event) {
+        event.preventDefault();
+        const email = document.getElementById("staffLoginEmail").value;
+        const password = document.getElementById("staffLoginPassword").value;
+        try {
+          const res = await fetch("/login_staff", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              staffLoginEmail: email,
+              staffLoginPassword: password,
+            }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            const u = data.user;
+            currentUser = {
+              id: u.id,
+              name: u.first_name,
+              role: u.role,
+              staffId: u.staff_id,
+              department: u.department,
+              phone: u.phone,
+              email: u.email,
+              qualification: u.qualification,
+              experience: u.experience,
+            };
+            sessionStorage.setItem("currentUser", JSON.stringify(currentUser));
+            loadStaffDashboard();
+            showPage("staffDashboard");
+          } else {
+            alert(data.message || "Invalid credentials!");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Login error");
+        }
+      }
+
+      async function loginAdmin(event) {
+        event.preventDefault();
+        const email = document.getElementById("adminLoginEmail").value;
+        const password = document.getElementById("adminLoginPassword").value;
+        try {
+          const res = await fetch("/login_admin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              adminLoginEmail: email,
+              adminLoginPassword: password,
+            }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            const u = data.user;
+            currentUser = {
+              role: "admin",
+              name: u.email,
+              id: u.id,
+              email: u.email,
+            };
+            sessionStorage.setItem("currentUser", JSON.stringify(currentUser));
+            loadAdminDashboard();
+            showPage("adminDashboard");
+          } else {
+            alert(data.message || "Invalid admin credentials!");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Login error");
+        }
+      }
+
+      function logout() {
+        currentUser = null;
+        showPage("welcomePage");
+      }
+
+      // Student Dashboard
+      function loadStudentDashboard() {
+        const yearDisplay = currentUser.year ? `Year ${currentUser.year}` : "";
+        document.getElementById("studentInfo").innerHTML = `
+                <h3>Welcome, ${currentUser.name}!</h3>
+                <p><strong>Student ID:</strong> ${currentUser.studentId} | <strong>Department:</strong> ${currentUser.department} ${yearDisplay ? "| <strong>Year:</strong> " + yearDisplay : ""}</p>
+            `;
+
+        const availableQuizzes = quizzes.filter(
+          (q) =>
+            q.department === currentUser.department || q.department === "All",
+        );
+
+        const studentAttempts = quizAttempts.filter(
+          (a) => a.studentId === currentUser.id,
+        );
+        const completedQuizIds = studentAttempts.map((a) => a.quizId);
+
+        document.getElementById("availableQuizzesCount").textContent =
+          availableQuizzes.length;
+        document.getElementById("completedQuizzesCount").textContent =
+          studentAttempts.length;
+
+        let avgScore = 0;
+        if (studentAttempts.length > 0) {
+          const totalScore = studentAttempts.reduce(
+            (sum, a) => sum + a.score,
+            0,
+          );
+          avgScore = (totalScore / studentAttempts.length).toFixed(1);
+        }
+        document.getElementById("averageScore").textContent = avgScore + "%";
+
+        let quizListHtml = "";
+        availableQuizzes.forEach((quiz) => {
+          const attempted = completedQuizIds.includes(quiz.id);
+          const attempt = studentAttempts.find((a) => a.quizId === quiz.id);
+
+          quizListHtml += `
+                    <div class="quiz-item">
+                        <h4>${quiz.title}</h4>
+                        <p>${quiz.description}</p>
+                        <p><strong>Department:</strong> ${quiz.department} | <strong>Duration:</strong> ${quiz.duration} minutes | <strong>Questions:</strong> ${quiz.questions.length}</p>
+                        <p><strong>Created by:</strong> ${quiz.createdBy}</p>
+                        ${
+                          attempted ?
+                            `<p class="score-badge ${getScoreClass(attempt.score)}">Completed - Score: ${attempt.score}%</p>`
+                          : `<button class="btn" onclick="startQuiz('${quiz.id}')">Start Quiz</button>`
+                        }
+                    </div>
+                `;
+        });
+
+        document.getElementById("studentQuizList").innerHTML =
+          quizListHtml || "<p>No quizzes available for your department.</p>";
+      }
+
+      function startQuiz(quizId) {
+        currentQuiz = quizzes.find((q) => q.id === quizId);
+        document.getElementById("quizTakingTitle").textContent =
+          currentQuiz.title;
+
+        let questionsHtml = "";
+        currentQuiz.questions.forEach((q, index) => {
+          questionsHtml += `
+                    <div class="question-item">
+                        <h4>Question ${index + 1}: ${q.question}</h4>
+                        <div class="option-group">
+                            ${q.options
+                              .map(
+                                (opt, optIndex) => `
+                                <label>
+                                    <input type="radio" name="question${index}" value="${optIndex}">
+                                    ${opt}
+                                </label>
+                            `,
+                              )
+                              .join("")}
+                        </div>
+                    </div>
+                `;
+        });
+
+        document.getElementById("quizQuestionsContainer").innerHTML =
+          questionsHtml;
+        showPage("quizTakingPage");
+      }
+
+      function submitQuiz() {
+        let score = 0;
+        const totalQuestions = currentQuiz.questions.length;
+
+        currentQuiz.questions.forEach((q, index) => {
+          const selected = document.querySelector(
+            `input[name="question${index}"]:checked`,
+          );
+          if (selected && parseInt(selected.value) === q.correctAnswer) {
+            score++;
+          }
+        });
+
+        const percentage = ((score / totalQuestions) * 100).toFixed(1);
+
+        const attempt = {
+          id: "ATT" + Date.now(),
+          quizId: currentQuiz.id,
+          quizTitle: currentQuiz.title,
+          studentId: currentUser.id,
+          studentName: currentUser.name,
+          studentDepartment: currentUser.department,
+          score: parseFloat(percentage),
+          totalQuestions: totalQuestions,
+          correctAnswers: score,
+          date: new Date().toISOString(),
+        };
+
+        quizAttempts.push(attempt);
+        localStorage.setItem("quizAttempts", JSON.stringify(quizAttempts));
+
+        alert(
+          `Quiz submitted! Your score: ${percentage}% (${score}/${totalQuestions})`,
+        );
+        loadStudentDashboard();
+        showPage("studentDashboard");
+      }
+
+      function backToStudentDashboard() {
+        loadStudentDashboard();
+        showPage("studentDashboard");
+      }
+
+      // Staff Dashboard
+      function loadStaffDashboard() {
+        document.getElementById("staffInfo").innerHTML = `
+                <h3>Welcome, ${currentUser.name}!</h3>
+                <p><strong>Staff ID:</strong> ${currentUser.staffId} | <strong>Department:</strong> ${currentUser.department}</p>
+            `;
+
+        questionCount = 0;
+        document.getElementById("questionsContainer").innerHTML = "";
+        loadStaffQuizzes();
+        loadStudentPerformance();
+      }
+
+      function switchTab(tabName, e) {
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((content) => content.classList.remove("active"));
+
+        const trigger =
+          e && (e.currentTarget || e.target) ?
+            e.currentTarget || e.target
+          : document.querySelector(`.tab-btn[onclick*="${tabName}"]`);
+        if (trigger) trigger.classList.add("active");
+        const tabEl = document.getElementById(tabName + "Tab");
+        if (tabEl) tabEl.classList.add("active");
+
+        if (tabName === "myQuizzes") {
+          loadStaffQuizzes();
+        } else if (tabName === "studentPerformance") {
+          loadStudentPerformance();
+        }
+      }
+
+      function addQuestion() {
+        questionCount++;
+        const container = document.getElementById("questionsContainer");
+        const questionDiv = document.createElement("div");
+        questionDiv.className = "question-builder";
+        questionDiv.innerHTML = `
+                <h4>Question ${questionCount}</h4>
+                <div class="form-group">
+                    <label>Question Text *</label>
+                    <textarea class="question-text" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Option 1 *</label>
+                    <input type="text" class="option" required>
+                </div>
+                <div class="form-group">
+                    <label>Option 2 *</label>
+                    <input type="text" class="option" required>
+                </div>
+                <div class="form-group">
+                    <label>Option 3 *</label>
+                    <input type="text" class="option" required>
+                </div>
+                <div class="form-group">
+                    <label>Option 4 *</label>
+                    <input type="text" class="option" required>
+                </div>
+                <div class="form-group">
+                    <label>Correct Answer *</label>
+                    <select class="correct-answer" required>
+                        <option value="">Select Correct Answer</option>
+                        <option value="0">Option 1</option>
+                        <option value="1">Option 2</option>
+                        <option value="2">Option 3</option>
+                        <option value="3">Option 4</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove(); renumberQuestions()">Remove Question</button>
+            `;
+        container.appendChild(questionDiv);
+      }
+
+      function renumberQuestions() {
+        const questions = document.querySelectorAll(".question-builder");
+        questions.forEach((q, index) => {
+          q.querySelector("h4").textContent = `Question ${index + 1}`;
+        });
+        questionCount = questions.length;
+      }
+
+      function createQuiz(event) {
+        event.preventDefault();
+
+        const questionElements = document.querySelectorAll(".question-builder");
+        if (questionElements.length === 0) {
+          alert("Please add at least one question!");
+          return;
+        }
+
+        const questions = [];
+        questionElements.forEach((qElem) => {
+          const options = Array.from(qElem.querySelectorAll(".option")).map(
+            (opt) => opt.value,
+          );
+          questions.push({
+            question: qElem.querySelector(".question-text").value,
+            options: options,
+            correctAnswer: parseInt(
+              qElem.querySelector(".correct-answer").value,
+            ),
+          });
+        });
+
+        const quiz = {
+          id: "QZ" + Date.now(),
+          title: document.getElementById("quizTitle").value,
+          description: document.getElementById("quizDescription").value,
+          department: document.getElementById("quizDepartment").value,
+          duration: document.getElementById("quizDuration").value,
+          questions: questions,
+          createdBy: currentUser.name,
+          createdById: currentUser.id,
+          createdAt: new Date().toISOString(),
+        };
+
+        quizzes.push(quiz);
+        localStorage.setItem("quizzes", JSON.stringify(quizzes));
+
+        alert("Quiz created successfully!");
+        event.target.reset();
+        questionCount = 0;
+        document.getElementById("questionsContainer").innerHTML = "";
+        loadStaffQuizzes();
+        switchTab("myQuizzes");
+      }
+
+      function loadStaffQuizzes() {
+        const staffQuizzes = quizzes.filter(
+          (q) => q.createdById === currentUser.id,
+        );
+
+        let html = "";
+        staffQuizzes.forEach((quiz) => {
+          const attempts = quizAttempts.filter((a) => a.quizId === quiz.id);
+          html += `
+                    <div class="quiz-item">
+                        <h4>${quiz.title}</h4>
+                        <p>${quiz.description}</p>
+                        <p><strong>Department:</strong> ${quiz.department} | <strong>Questions:</strong> ${quiz.questions.length} | <strong>Attempts:</strong> ${attempts.length}</p>
+                        <p><strong>Created:</strong> ${new Date(quiz.createdAt).toLocaleString()}</p>
+                    </div>
+                `;
+        });
+
+        document.getElementById("staffQuizList").innerHTML =
+          html || "<p>You haven't created any quizzes yet.</p>";
+      }
+
+      function loadStudentPerformance() {
+        const staffQuizzes = quizzes.filter(
+          (q) => q.createdById === currentUser.id,
+        );
+        const staffQuizIds = staffQuizzes.map((q) => q.id);
+        const relevantAttempts = quizAttempts.filter((a) =>
+          staffQuizIds.includes(a.quizId),
+        );
+
+        let html = "<h3>Student Results</h3>";
+
+        if (relevantAttempts.length === 0) {
+          html += "<p>No students have attempted your quizzes yet.</p>";
+        } else {
+          relevantAttempts.forEach((attempt) => {
+            html += `
+                        <div class="student-card">
+                            <h4>${attempt.studentName}</h4>
+                            <p><strong>Quiz:</strong> ${attempt.quizTitle}</p>
+                            <p><strong>Department:</strong> ${attempt.studentDepartment}</p>
+                            <p><strong>Score:</strong> ${attempt.correctAnswers}/${attempt.totalQuestions} (${attempt.score}%)</p>
+                            <p><strong>Date:</strong> ${new Date(attempt.date).toLocaleString()}</p>
+                            <span class="score-badge ${getScoreClass(attempt.score)}">
+                                ${getPerformanceText(attempt.score)}
+                            </span>
+                        </div>
+                    `;
+          });
+        }
+
+        document.getElementById("performanceContainer").innerHTML = html;
+      }
+
+      // Admin Dashboard
+      async function loadAdminDashboard() {
+        // Fetch real data from backend
+        try {
+          const [studentsRes, staffRes] = await Promise.all([
+            fetch("/api/admin/students"),
+            fetch("/api/admin/staff"),
+          ]);
+
+          const studentsData = await studentsRes.json();
+          const staffData = await staffRes.json();
+
+          const studentsFromDB =
+            studentsData.success ? studentsData.students : [];
+          const staffFromDB = staffData.success ? staffData.staff : [];
+
+          document.getElementById("totalStudents").textContent =
+            studentsFromDB.length;
+          document.getElementById("totalStaff").textContent =
+            staffFromDB.length;
+          document.getElementById("totalQuizzes").textContent = quizzes.length;
+          document.getElementById("totalAttempts").textContent =
+            quizAttempts.length;
+
+          loadAdminQuizzes();
+          loadAdminStudents(studentsFromDB);
+          loadAdminStaff(staffFromDB);
+          loadAdminAttempts();
+        } catch (error) {
+          console.error("Error loading admin dashboard:", error);
+          alert("Error loading dashboard data. Please try again.");
+        }
+      }
+
+      async function switchAdminTab(tabName, e) {
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((content) => content.classList.remove("active"));
+
+        const trigger =
+          e && (e.currentTarget || e.target) ?
+            e.currentTarget || e.target
+          : document.querySelector(`.tab-btn[onclick*="${tabName}"]`);
+        if (trigger) trigger.classList.add("active");
+        const adminTabId =
+          "admin" + tabName.charAt(0).toUpperCase() + tabName.slice(1) + "Tab";
+        const adminTabEl = document.getElementById(adminTabId);
+        if (adminTabEl) adminTabEl.classList.add("active");
+
+        // Reload data when switching to students or staff tabs
+        if (tabName === "students") {
+          try {
+            const res = await fetch("/api/admin/students");
+            const data = await res.json();
+            if (data.success) {
+              loadAdminStudents(data.students);
+            }
+          } catch (error) {
+            console.error("Error loading students:", error);
+          }
+        } else if (tabName === "staff") {
+          try {
+            const res = await fetch("/api/admin/staff");
+            const data = await res.json();
+            if (data.success) {
+              loadAdminStaff(data.staff);
+            }
+          } catch (error) {
+            console.error("Error loading staff:", error);
+          }
+        }
+      }
+
+      function loadAdminQuizzes() {
+        let html = "";
+        quizzes.forEach((quiz) => {
+          const attempts = quizAttempts.filter((a) => a.quizId === quiz.id);
+          html += `
+                    <div class="quiz-item">
+                        <h4>${quiz.title}</h4>
+                        <p>${quiz.description}</p>
+                        <p><strong>Created by:</strong> ${quiz.createdBy} | <strong>Department:</strong> ${quiz.department}</p>
+                        <p><strong>Questions:</strong> ${quiz.questions.length} | <strong>Attempts:</strong> ${attempts.length}</p>
+                        <p><strong>Created:</strong> ${new Date(quiz.createdAt).toLocaleString()}</p>
+                    </div>
+                `;
+        });
+        document.getElementById("adminQuizList").innerHTML =
+          html || "<p>No quizzes created yet.</p>";
+      }
+
+      function loadAdminStudents(studentsFromDB) {
+        if (!studentsFromDB || studentsFromDB.length === 0) {
+          document.getElementById("adminStudentList").innerHTML =
+            "<p>No students registered yet.</p>";
+          return;
+        }
+
+        let html =
+          "<table><tr><th>Student ID</th><th>Name</th><th>Department</th><th>Year</th><th>Gender</th><th>Email</th><th>Phone</th><th>Registered Date</th></tr>";
+        studentsFromDB.forEach((student) => {
+          const fullName = student.first_name;
+          const registeredDate = new Date(
+            student.created_at,
+          ).toLocaleDateString();
+          const year = student.year ? `Year ${student.year}` : "N/A";
+          const gender = student.gender || "N/A";
+          html += `
+                    <tr>
+                        <td>${student.student_id}</td>
+                        <td>${fullName}</td>
+                        <td>${student.department}</td>
+                        <td>${year}</td>
+                        <td>${gender}</td>
+                        <td>${student.email}</td>
+                        <td>${student.phone}</td>
+                        <td>${registeredDate}</td>
+                    </tr>
+                `;
+        });
+        html += "</table>";
+        document.getElementById("adminStudentList").innerHTML = html;
+      }
+
+      function loadAdminStaff(staffFromDB) {
+        if (!staffFromDB || staffFromDB.length === 0) {
+          document.getElementById("adminStaffList").innerHTML =
+            "<p>No staff registered yet.</p>";
+          return;
+        }
+
+        let html =
+          "<table><tr><th>Staff ID</th><th>Name</th><th>Department</th><th>Qualification</th><th>Experience</th><th>Email</th><th>Phone</th><th>Registered Date</th></tr>";
+        staffFromDB.forEach((staffMember) => {
+          const fullName = staffMember.first_name;
+          const registeredDate = new Date(
+            staffMember.created_at,
+          ).toLocaleDateString();
+          const qualification = staffMember.qualification || "N/A";
+          const experience =
+            staffMember.experience ? `${staffMember.experience} years` : "N/A";
+          html += `
+                    <tr>
+                        <td>${staffMember.staff_id}</td>
+                        <td>${fullName}</td>
+                        <td>${staffMember.department}</td>
+                        <td>${qualification}</td>
+                        <td>${experience}</td>
+                        <td>${staffMember.email}</td>
+                        <td>${staffMember.phone}</td>
+                        <td>${registeredDate}</td>
+                    </tr>
+                `;
+        });
+        html += "</table>";
+        document.getElementById("adminStaffList").innerHTML = html;
+      }
+
+      function loadAdminAttempts() {
+        let html =
+          "<table><tr><th>Student</th><th>Quiz</th><th>Score</th><th>Date</th><th>Department</th></tr>";
+        quizAttempts.forEach((attempt) => {
+          html += `
+                    <tr>
+                        <td>${attempt.studentName}</td>
+                        <td>${attempt.quizTitle}</td>
+                        <td><span class="score-badge ${getScoreClass(attempt.score)}">${attempt.score}%</span></td>
+                        <td>${new Date(attempt.date).toLocaleString()}</td>
+                        <td>${attempt.studentDepartment}</td>
+                    </tr>
+                `;
+        });
+        html += "</table>";
+        document.getElementById("adminAttemptsList").innerHTML =
+          quizAttempts.length > 0 ? html : "<p>No quiz attempts yet.</p>";
+      }
+
+      // Helper Functions
+      function getScoreClass(score) {
+        if (score >= 80) return "excellent";
+        if (score >= 60) return "good";
+        if (score >= 40) return "average";
+        return "poor";
+      }
+
+      function getPerformanceText(score) {
+        if (score >= 80) return "Excellent";
+        if (score >= 60) return "Good";
+        if (score >= 40) return "Average";
+        return "Needs Improvement";
+      }
+
+      // AI Teacher Assistant helper functions will be inserted before init
+
+      // AI Teacher Assistant: generate teaching/assessment questions for a topic
+      async function generateTeachingAssistant() {
+        const topic = document.getElementById("aiTopic").value || "";
+        const numQuestions =
+          parseInt(document.getElementById("aiTeachNum").value) || 5;
+        const difficulty =
+          document.getElementById("aiTeachDifficulty").value || "medium";
+        const respEl = document.getElementById("aiTeacherResponse");
+        const resultsEl = document.getElementById("aiTeacherResults");
+        respEl.textContent = "Generating questions...";
+        resultsEl.innerHTML = "";
+
+        if (!topic.trim()) {
+          respEl.textContent = "Please enter a topic.";
+          return;
+        }
+
+        try {
+          const res = await fetch("/api/gen_ai/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt: `Generate ${numQuestions} ${difficulty} questions for topic: ${topic}`,
+              num_questions: numQuestions,
+              department:
+                document.getElementById("quizDepartment") ?
+                  document.getElementById("quizDepartment").value
+                : "All",
+              difficulty,
+            }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            respEl.textContent =
+              "AI generation failed: " +
+              (data.message || "Unknown error") +
+              (data.detail ? " — " + data.detail : "");
+            return;
+          }
+
+          let quiz = data.quiz || null;
+          if (!quiz && data.raw) {
+            try {
+              quiz = JSON.parse(data.raw);
+            } catch (e) {
+              /* ignore */
+            }
+          }
+          if (!quiz) {
+            respEl.textContent = "AI returned unparseable output.";
+            resultsEl.textContent = data.raw || JSON.stringify(data);
+            return;
+          }
+
+          respEl.textContent =
+            "Generated questions. Review below or use the buttons to add/save.";
+
+          window.lastGeneratedQuiz = quiz;
+
+          let html = `<h4 style="margin:6px 0 8px 0;color:#333">${quiz.title || "Generated Questions"}</h4>`;
+          html += `<p style="color:#555;margin:0 0 10px 0">${quiz.description || ""}</p>`;
+          html += "<ol>";
+          (quiz.questions || []).forEach((q) => {
+            html += `<li style="margin-bottom:8px;"><strong>${q.question}</strong>`;
+            if (q.options && q.options.length) {
+              html += '<ul style="margin:6px 0 0 18px;">';
+              q.options.forEach((opt) => (html += `<li>${opt}</li>`));
+              html += "</ul>";
+            }
+            html += "</li>";
+          });
+          html += "</ol>";
+          html += `<div style="display:flex;gap:8px;margin-top:8px;"><button class="btn" id="aiAddToCreate">Add to Create Quiz</button><button class="btn btn-success" id="aiSaveQuiz">Save as Quiz</button></div>`;
+
+          resultsEl.innerHTML = html;
+
+          document
+            .getElementById("aiAddToCreate")
+            .addEventListener("click", () => addGeneratedToCreateQuiz());
+          document
+            .getElementById("aiSaveQuiz")
+            .addEventListener("click", () => saveGeneratedAsQuiz());
+        } catch (err) {
+          console.error(err);
+          respEl.textContent = "Error calling AI service.";
+        }
+      }
+
+      // Add generated quiz JSON into the Create Quiz form for editing
+      function addGeneratedToCreateQuiz() {
+        const quiz = window.lastGeneratedQuiz;
+        if (!quiz) {
+          alert("No generated quiz available.");
+          return;
+        }
+        try {
+          document.getElementById("quizTitle").value = quiz.title || "";
+          document.getElementById("quizDescription").value =
+            quiz.description || "";
+          if (document.getElementById("quizDepartment"))
+            document.getElementById("quizDepartment").value =
+              quiz.department || "All";
+          if (document.getElementById("quizDuration"))
+            document.getElementById("quizDuration").value = quiz.duration || 30;
+          document.getElementById("questionsContainer").innerHTML = "";
+          questionCount = 0;
+          (quiz.questions || []).forEach((q) => {
+            addQuestion();
+            const builders = document.querySelectorAll(".question-builder");
+            const qb = builders[builders.length - 1];
+            if (!qb) return;
+            const qtext = qb.querySelector(".question-text");
+            const opts = qb.querySelectorAll(".option");
+            const correctSel = qb.querySelector(".correct-answer");
+            if (qtext) qtext.value = q.question || "";
+            for (let i = 0; i < 4; i++) {
+              if (opts[i])
+                opts[i].value = q.options && q.options[i] ? q.options[i] : "";
+            }
+            if (correctSel && typeof q.correctAnswer !== "undefined")
+              correctSel.value = String(q.correctAnswer);
+          });
+          switchTab("createQuiz");
+        } catch (e) {
+          console.error(e);
+          alert("Failed to add generated questions to create form.");
+        }
+      }
+
+      // Save generated quiz directly into local quizzes list
+      function saveGeneratedAsQuiz() {
+        const quiz = window.lastGeneratedQuiz;
+        if (!quiz) {
+          alert("No generated quiz available.");
+          return;
+        }
+        try {
+          const newQuiz = {
+            id: "QZ" + Date.now(),
+            title:
+              quiz.title ||
+              "Quiz on " +
+                (document.getElementById("aiTopic").value || "Topic"),
+            description: quiz.description || "",
+            department:
+              quiz.department ||
+              (document.getElementById("quizDepartment") ?
+                document.getElementById("quizDepartment").value
+              : "All"),
+            duration: quiz.duration || 30,
+            questions: quiz.questions || [],
+            createdBy: currentUser ? currentUser.name : "Staff",
+            createdById: currentUser ? currentUser.id : null,
+            createdAt: new Date().toISOString(),
+          };
+          quizzes.push(newQuiz);
+          localStorage.setItem("quizzes", JSON.stringify(quizzes));
+          alert("Generated quiz saved.");
+          loadStaffQuizzes();
+        } catch (e) {
+          console.error(e);
+          alert("Failed to save generated quiz.");
+        }
+      }
+
+      // Initialize - Load admin dashboard if admin is logged in
+      window.addEventListener("load", () => {
+        // Check if there's a logged in user in session storage
+        const savedUser = sessionStorage.getItem("currentUser");
+        if (savedUser) {
+          currentUser = JSON.parse(savedUser);
+          if (currentUser.role === "admin") {
+            loadAdminDashboard();
+            showPage("adminDashboard");
+          } else if (currentUser.role === "student") {
+            loadStudentDashboard();
+            showPage("studentDashboard");
+          } else if (currentUser.role === "staff") {
+            loadStaffDashboard();
+            showPage("staffDashboard");
+          }
+        }
+      });
+
+      // Save current user to session storage when logging in
+      const originalLoginStudent = loginStudent;
+      loginStudent = function (event) {
+        originalLoginStudent(event);
+        if (currentUser) {
+          sessionStorage.setItem("currentUser", JSON.stringify(currentUser));
+        }
+      };
+
+      const originalLoginStaff = loginStaff;
+      loginStaff = function (event) {
+        originalLoginStaff(event);
+        if (currentUser) {
+          sessionStorage.setItem("currentUser", JSON.stringify(currentUser));
+        }
+      };
+
+      const originalLoginAdmin = loginAdmin;
+      loginAdmin = function (event) {
+        originalLoginAdmin(event);
+        if (currentUser) {
+          sessionStorage.setItem("currentUser", JSON.stringify(currentUser));
+        }
+      };
+
+      const originalLogout = logout;
+      logout = function () {
+        sessionStorage.removeItem("currentUser");
+        originalLogout();
+      };
+    </script>
+  </body>
+</html>
